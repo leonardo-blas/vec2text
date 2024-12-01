@@ -134,7 +134,11 @@ def embed_dataset_batch(model: InversionModel, batch: Dict) -> Dict:
     ).to(next(model.parameters()).device)
 
     with torch.no_grad():
-        batch["frozen_embeddings"] = model.call_embedding_model(**emb_input_ids)
+        embeddings = model.call_embedding_model(**emb_input_ids)
+        # 0.01 is the highest tested noise level that works in the corrector's loop.
+        noise = torch.randn(embeddings.shape, device=embeddings.device) * 0.01
+        noisy_embeddings = embeddings + noise
+        batch["frozen_embeddings"] = noisy_embeddings
     return batch
 
 
